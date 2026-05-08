@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MockMate AI - Interview Simulator</title>
+    <link rel="stylesheet" href="interview.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favStar.png"> 
+
+</head>
+<body>
+    
+    <nav class="topbar">
+        <a href="index.html" class="brand">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 0L13.5 10.5L24 12L13.5 13.5L12 24L10.5 13.5L0 12L10.5 10.5L12 0Z" fill="#22c55e"/>
+            </svg>
+            <span>MOCKMATE <span class="brand-accent">AI</span></span>
+        </a>
+        <div class="topbar-actions">
+            <a href="index.html" class="nav-button nav-button-outline">Home</a>
+            <button class="topbar-link" id="resetSessionBtn" type="button">Reset Session</button>
+        </div>
+    </nav>
+
+    <main class="app-shell">
+        <section class="setup-panel" id="setupPhase">
+            <div class="setup-card setup-main-card">
+                <div class="setup-copy">
+                    <p class="eyebrow">Step 1 of 3 • Takes less than 2 minutes</p>
+                    <div class="setup-hero-icon" aria-hidden="true">
+                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+                            <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M14 2v5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M9 13h6M9 17h6M9 9h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                        </svg>
+                    </div>
+                    <h1>Upload Your Resume</h1>
+                    <p class="setup-lead">Upload your resume and select your job role to get a personalized interview experience.</p>
+                </div>
+
+                <div class="field-group">
+                    <label for="jobRole">Select Job Role</label>
+                    <select id="jobRole" class="field-input" required>
+                        <option value="">Select your job role</option>
+                        <option>Frontend Developer</option>
+                        <option>Backend Developer</option>
+                        <option>Full Stack Developer</option>
+                        <option>Software Engineer</option>
+                        <option>Data Analyst</option>
+                    </select>
+                    <p class="field-help">This helps us tailor questions and feedback to your specific role.</p>
+                </div>
+
+                <div class="field-group">
+                    <label for="fileUpload">Upload Resume</label>
+                    <button class="upload-card upload-card-large" id="uploadTrigger" type="button">
+                        <input type="file" id="fileUpload" hidden accept=".pdf,.docx">
+                        <span class="upload-icon" aria-hidden="true">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path d="m17 8-5-5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path d="M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </span>
+                        <span class="upload-main" id="uploadLabel">Click to upload</span>
+                        <span class="upload-sub" id="uploadHint">DOCX or PDF format</span>
+                    </button>
+                </div>
+
+                <button class="primary-button setup-button" id="startInterviewBtn" type="button">Continue to Interview</button>
+            </div>
+
+            <aside class="setup-card setup-sidepanel">
+                <div class="side-header">
+                    <p class="tip-label">Choose Preparation Mode</p>
+                </div>
+
+                <label class="mode-option is-selected">
+                    <input type="radio" name="prepMode" value="live" checked hidden>
+                    <div class="mode-option-icon">Live</div>
+                    <div class="mode-option-copy">
+                        <div class="mode-option-title-row">
+                            <h3>Live Interview</h3>
+                            <span class="mode-option-badge">Recommended</span>
+                        </div>
+                        <p>Real-time interview simulation with voice & instant feedback.</p>
+                    </div>
+                    <span class="mode-option-radio"></span>
+                </label>
+
+                <div class="interview-mode-panel" id="interviewModePanel">
+                    <p class="tip-label">Choose Interview Type</p>
+
+                    <label class="interview-mode-option">
+                        <input type="radio" name="interviewMode" value="technical" hidden>
+                        <span>Technical</span>
+                    </label>
+
+                    <label class="interview-mode-option">
+                        <input type="radio" name="interviewMode" value="hr" hidden>
+                        <span>HR</span>
+                    </label>
+
+                    <label class="interview-mode-option is-selected">
+                        <input type="radio" name="interviewMode" value="mixed" checked hidden>
+                        <span>Mixed</span>
+                        <strong>Recommended</strong>
+                    </label>
+                </div>
+
+                <label class="mode-option">
+                    <input type="radio" name="prepMode" value="prep" hidden>
+                    <div class="mode-option-icon">Prep</div>
+                    <div class="mode-option-copy">
+                        <div class="mode-option-title-row">
+                            <h3>Personalized Prep</h3>
+                        </div>
+                        <p>Practice questions, strategies, and key points to study.</p>
+                    </div>
+                    <span class="mode-option-radio"></span>
+                </label>
+            </aside>
+        </section>
+
+        <section class="prep-dashboard hidden" id="prepPhase">
+            <div class="prep-dashboard-head">
+                <div>
+                    <p class="session-label">Personalized Prep</p>
+                    <h1>Your interview prep plan.</h1>
+                    <p id="prepSummary">Building a focused plan from your resume and target role.</p>
+                </div>
+                <button class="primary-button" id="prepStartLiveBtn" type="button">Start Live Interview</button>
+            </div>
+
+            <section class="prep-top-grid">
+                <article class="prep-card prep-user-card">
+                    <p class="tip-label">Candidate Snapshot</p>
+                    <h2 id="prepUserName">Candidate</h2>
+                    <p id="prepUserRole">Target role</p>
+                    <div class="prep-skill-list" id="prepSkillList"></div>
+                </article>
+
+                <article class="prep-card prep-ai-card">
+                    <p class="tip-label">AI Summary</p>
+                    <p id="prepAiSummary">A concise summary will appear here.</p>
+                </article>
+            </section>
+
+            <section class="prep-section">
+                <div class="prep-section-head">
+                    <p class="tip-label">Focus Areas</p>
+                    <h2>What to improve first</h2>
+                </div>
+                <div class="focus-grid" id="prepFocusGrid"></div>
+            </section>
+
+            <section class="prep-bottom-grid">
+                <article class="prep-card">
+                    <p class="tip-label">Key Topics</p>
+                    <ul class="prep-clean-list" id="prepTopicList"></ul>
+                </article>
+
+                <article class="prep-card">
+                    <p class="tip-label">Tips & Strategy</p>
+                    <ul class="prep-clean-list" id="prepTipList"></ul>
+                </article>
+            </section>
+        </section>
+
+        <section class="interview-layout hidden" id="interviewPhase">
+            <div class="interview-main">
+                <div class="session-top">
+                    <div>
+                        <p class="session-label">Step 2 of 3</p>
+                    </div>
+                    <div class="countdown" id="countdownTimer">01:30</div>
+                </div>
+
+                <div class="interviewer-bubble hidden" id="interviewerBubble">
+                    <div class="interviewer-bubble-head">
+                        <p class="interviewer-bubble-name">AI Interviewer</p>
+                        <label class="narration-switch" title="Narrate interviewer and question">
+                            <span class="narration-switch-label" id="questionNarrationLabel">Narration Off</span>
+                            <input type="checkbox" id="questionNarrationToggle">
+                            <span class="narration-switch-track" aria-hidden="true"></span>
+                        </label>
+                    </div>
+                    <p id="interviewerBubbleText"></p>
+                </div>
+
+                <article class="question-card" id="questionCard">
+                    <p class="question-sequence" id="questionSequenceLabel">Q 1</p>
+
+                    <div class="question-block" id="contextRow">
+                        <span class="question-tag">Context</span>
+                        <p id="questionContext">We are reviewing a project you mentioned on your resume.</p>
+                    </div>
+
+                    <div class="question-block" id="questionBlock">
+                        <div class="question-label-row">
+                            <span class="question-tag">Question</span>
+                        </div>
+                        <p class="question-main" id="questionText">Tell me about the most technically challenging feature you built recently.</p>
+                    </div>
+
+                    <div class="question-block" id="followUpRow">
+                        <span class="question-tag">Follow-up</span>
+                        <p id="questionFollowUp">Explain one trade-off you had to make.</p>
+                    </div>
+                </article>
+
+                
+
+                <section class="response-card">
+                    <textarea id="answerInput" class="answer-input" contenteditable="true"  rows="5" placeholder="Speak using the mic or type your answer here."></textarea>
+
+                    <div class="voice-dock">
+                        <button class="mic-button" id="micBtn" type="button" aria-label="Start voice input">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path d="M12 19v3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </button>
+
+                        <div class="voice-status">
+                            <p class="status-text" id="statusText">Ready to answer</p>
+                            <div class="waveform" id="waveform" aria-hidden="true">
+                                <span></span><span></span><span></span><span></span><span></span>
+                                <span></span><span></span><span></span><span></span><span></span>
+                                <span></span><span></span><span></span><span></span><span></span>
+                                <span></span><span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="session-actions">
+                    <button class="end-button" id="endInterviewBtn" type="button">End Interview</button>
+                    <div class="action-group">
+                        <button class="secondary-button" id="skipQuestionBtn" type="button">Skip Question</button>
+                        <button class="primary-button" id="submitAnswerBtn" type="button">Submit Answer</button>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="side-panel">
+                <div class="camera-card">
+                    <div class="camera-head">
+                        <p class="brief-label">You</p>
+                        <div class="camera-indicator" id="cameraIndicator">
+                            <span class="camera-indicator-dot"></span>
+                            <span id="cameraIndicatorText">Loading camera...</span>
+                        </div>
+                    </div>
+                    <div class="camera-frame">
+                        <video id="selfViewVideo" class="self-view-video" autoplay muted playsinline></video>
+                    </div>
+                </div>
+
+                <div class="brief-card">
+                    <p class="brief-label">Interview Brief</p>
+                    <dl class="brief-list">
+                        <div>
+                            <dt>Role</dt>
+                            <dd id="briefRole">Software Engineer</dd>
+                        </div>
+                        <div>
+                            <dt>Resume</dt>
+                            <dd id="briefResume">Not uploaded</dd>
+                        </div>
+                        <div>
+                            <dt>Status</dt>
+                            <dd id="briefStatus">Waiting to begin</dd>
+                        </div>
+                    </dl>
+                </div>
+                
+
+                <div class="tip-card muted-card">
+                    <p class="tip-label">What good answers include</p>
+                    <ul class="side-list">
+                        <li>One clear example from a real project</li>
+                        <li>The trade-off or decision you made</li>
+                        <li>The specific tool, framework, or metric involved</li>
+                    </ul>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js/dist/face-api.min.js"></script>
+    <script defer src="" ></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+    <script type="module">
+        import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs";
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
+        window.pdfjsLib = pdfjsLib;
+    </script>
+    <script type="module" src="AI.js"></script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MockMate AI - Leaderboard</title>
+    <link rel="stylesheet" href="interview.css">
+    <link rel="stylesheet" href="result.css">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="favStar.png">
+</head>
+<body>
+    <nav class="topbar">
+        <a href="index.html" class="brand">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 0L13.5 10.5L24 12L13.5 13.5L12 24L10.5 13.5L0 12L10.5 10.5L12 0Z" fill="#22c55e"/>
+            </svg>
+            <span>MOCKMATE <span class="brand-accent">AI</span></span>
+        </a>
+        <div class="topbar-actions">
+            <a class="nav-button" href="index.html">Dashboard</a>
+            <a class="topbar-link" href="interview.html">Start Interview</a>
+        </div>
+    </nav>
+
+    <main class="leaderboard-shell">
+        <section class="result-hero leaderboard-hero">
+            <p class="eyebrow">Global Rankings</p>
+            <h1>Leaderboard.</h1>
+            <p class="result-subtitle">Top MockMate AI interview performances ranked by saved interview score.</p>
+        </section>
+
+        <section class="metric-grid leaderboard-metrics">
+            <article class="metric-card">
+                <p>Ranked Interviews</p>
+                <strong id="rankedCount">0</strong>
+            </article>
+            <article class="metric-card">
+                <p>Top Score</p>
+                <strong id="topScore">--</strong>
+            </article>
+            <article class="metric-card">
+                <p>Average Score</p>
+                <strong id="averageScore">--</strong>
+            </article>
+        </section>
+
+        <section class="result-card leaderboard-card">
+            <div class="leaderboard-card-head">
+                <div>
+                    <p class="summary-label">Live from Firestore</p>
+                    <h2>Top candidates</h2>
+                </div>
+                <span class="mode-chip" id="leaderboardStatus">Loading</span>
+            </div>
+
+            <div class="leaderboard-loading" id="leaderboardLoading">Loading rankings...</div>
+            <div class="leaderboard-empty hidden" id="leaderboardEmpty">
+                No completed interviews are saved yet.
+            </div>
+
+            <div class="leaderboard-list hidden" id="leaderboardList" aria-live="polite"></div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+        import {
+            getFirestore,
+            collection,
+            doc,
+            getDoc,
+            limit,
+            onSnapshot,
+            orderBy,
+            query
+        } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAETyqOQAUdpUWjAkbtEJI_QFXf4nrGoos",
+            authDomain: "mockmate-ai-dc73f.firebaseapp.com",
+            projectId: "mockmate-ai-dc73f",
+            storageBucket: "mockmate-ai-dc73f.firebasestorage.app",
+            messagingSenderId: "493275586457",
+            appId: "1:493275586457:web:839dd3a7bdd2eb8cab7d08"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const rankedCount = document.getElementById("rankedCount");
+        const topScore = document.getElementById("topScore");
+        const averageScore = document.getElementById("averageScore");
+        const status = document.getElementById("leaderboardStatus");
+        const loading = document.getElementById("leaderboardLoading");
+        const empty = document.getElementById("leaderboardEmpty");
+        const list = document.getElementById("leaderboardList");
+        const userNameCache = new Map();
+
+        const leaderboardQuery = query(
+            collection(db, "interviews"),
+            orderBy("score", "desc"),
+            limit(25)
+        );
+
+        onSnapshot(leaderboardQuery, async (snapshot) => {
+            const entries = snapshot.docs
+                .map((doc) => ({ id: doc.id, ...doc.data() }))
+                .filter((entry) => Number.isFinite(Number(entry.score)));
+
+            const entriesWithNames = await Promise.all(entries.map(addDatabaseUserName));
+            renderLeaderboard(entriesWithNames);
+        }, (error) => {
+            console.error("Leaderboard load failed:", error);
+            loading.classList.add("hidden");
+            list.classList.add("hidden");
+            empty.classList.remove("hidden");
+            empty.textContent = "Leaderboard could not be loaded. Check Firebase permissions and console logs.";
+            status.textContent = "Unavailable";
+        });
+
+        function renderLeaderboard(entries) {
+            loading.classList.add("hidden");
+            status.textContent = "Live";
+            rankedCount.textContent = String(entries.length);
+            topScore.textContent = entries.length ? `${sanitizeScore(entries[0].score)}/100` : "--";
+            averageScore.textContent = entries.length
+                ? `${Math.round(entries.reduce((sum, entry) => sum + sanitizeScore(entry.score), 0) / entries.length)}/100`
+                : "--";
+
+            if (!entries.length) {
+                list.classList.add("hidden");
+                empty.classList.remove("hidden");
+                return;
+            }
+
+            empty.classList.add("hidden");
+            list.classList.remove("hidden");
+            list.innerHTML = entries.map(buildLeaderboardRow).join("");
+        }
+
+        function buildLeaderboardRow(entry, index) {
+            const rank = index + 1;
+            const score = sanitizeScore(entry.score);
+            const name = getCandidateName(entry);
+            const date = formatDate(entry.createdAt) || sanitizeText(entry.date || "Recent");
+            const role = sanitizeText(entry.role || "Mock interview");
+            const mode = getModeLabel(entry.mode || "technical");
+            const rankClass = rank <= 3 ? `is-top-${rank}` : "";
+
+            return `
+                <article class="leaderboard-row ${rankClass}">
+                    <div class="leaderboard-rank">#${rank}</div>
+                    <div class="leaderboard-person">
+                        <strong>${escapeHtml(name)}</strong>
+                        <span>${escapeHtml(role)} | ${escapeHtml(mode)} | ${escapeHtml(date)}</span>
+                    </div>
+                    <div class="leaderboard-score">${score}<small>/100</small></div>
+                </article>
+            `;
+        }
+
+        async function addDatabaseUserName(entry) {
+            if (!entry.userId) return entry;
+            if (userNameCache.has(entry.userId)) {
+                return { ...entry, databaseName: userNameCache.get(entry.userId) };
+            }
+
+            try {
+                const userSnap = await getDoc(doc(db, "users", entry.userId));
+                const userData = userSnap.exists() ? userSnap.data() : {};
+                const databaseName = sanitizeText(userData.name || userData.fullName || userData.displayName);
+                userNameCache.set(entry.userId, databaseName);
+                return { ...entry, databaseName };
+            } catch (error) {
+                console.warn("Could not load leaderboard user name:", error);
+                userNameCache.set(entry.userId, "");
+                return entry;
+            }
+        }
+
+        function getCandidateName(entry) {
+            const databaseName = sanitizeText(entry.databaseName);
+            if (databaseName) return databaseName;
+
+            const savedName = sanitizeText(entry.candidateName || entry.name || entry.displayName);
+            if (savedName) return savedName;
+
+            const email = sanitizeText(entry.email || entry.userEmail);
+            if (email) return email.split("@")[0].replace(/[._-]+/g, " ");
+
+            const userId = sanitizeText(entry.userId);
+            return userId ? `Candidate ${userId.slice(0, 6)}` : "Anonymous Candidate";
+        }
+
+        function formatDate(value) {
+            const rawDate = value?.toDate ? value.toDate() : value;
+            const date = rawDate instanceof Date ? rawDate : new Date(rawDate);
+            if (Number.isNaN(date.getTime())) return "";
+            return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+        }
+
+        function getModeLabel(mode) {
+            if (mode === "mixed") return "Mixed";
+            if (mode === "hr") return "HR";
+            return "Technical";
+        }
+
+        function sanitizeScore(value) {
+            return Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+        }
+
+        function sanitizeText(value) {
+            return String(value || "").replace(/\s+/g, " ").trim();
+        }
+
+        function escapeHtml(value) {
+            return sanitizeText(value).replace(/[&<>"']/g, (char) => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char]));
+        }
+    </script>
+</body>
+</html>

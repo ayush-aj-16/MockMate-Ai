@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MockMateAI — Ace Your Next Interview</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favStar.png"> 
+</head>
+<body>
+
+<!-- ================= USER DASHBOARD ================= -->
+<div id="dashboardPage" style="display: none; padding: 100px 5%; min-height: 100vh; background: #0a0a0a;">
+  <div class="container">
+    <div class="dashboard-header">
+      <div>
+        <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Welcome, <span class="accent-text" id="userEmailDisplay">Candidate</span> 👋</h2>
+        <p style="color: #aaa;">Here is your interview progress and history.</p>
+      </div>
+      <button id="logoutBtn" class="btn" style="border: 1px solid #ff4444; color: #ff4444; background: transparent; padding: 0.5rem 1.5rem;">Log Out</button>
+    </div>
+
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+        <div class="stat-info">
+          <h4>Total Interviews</h4>
+          <span class="stat-number" id="totalInterviews">0</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+        </div>
+        <div class="stat-info">
+          <h4>Average Score</h4>
+          <span class="stat-number" id="avgScore">--/100</span>
+        </div>
+      </div>
+
+      <div class="stat-card action-card">
+        <a href="interview.html" class="btn btn--primary w-full" style="padding: 1rem; font-size: 1.1rem; text-align: center;">+ Start New Interview</a>
+      </div>
+
+      <div class="stat-card action-card">
+        <a href="leaderboard.html" class="btn btn--outline w-full" style="padding: 1rem; font-size: 1.1rem; text-align: center;">View Leaderboard</a>
+      </div>
+    </div>
+
+    <div class="dashboard-history">
+      <h3 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Recent Interviews</h3>
+      <div class="history-list" id="historyList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= NAV (always visible) ================= -->
+<nav class="nav">
+  <div class="nav__logo">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M11 1L14 8H21L15.5 12.5L17.5 20L11 15.5L4.5 20L6.5 12.5L1 8H8L11 1Z" fill="#22c55e"/>
+    </svg>
+    <span style="font-size: 1.1rem; font-weight: 700;">MOCKMATE <span class="accent">AI</span></span>
+  </div>
+
+  <ul class="nav__links">
+    <li><a href="#home" class="active">Home</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#about">About</a></li>
+
+  </ul>
+
+  <div class="nav__actions" style="display: flex; align-items: center; gap: 1rem;">
+    <a href="#" id="desktopLoginBtn" class="btn btn--outline nav-leaderboard-link">Login</a>
+    <a href="leaderboard.html" class="btn btn--outline nav-leaderboard-link">Leaderboard</a>
+    <a href="interview.html" style="padding: 10px;" class="btn btn--nav">Start Mock Interview <span>→</span></a>
+    <img src="icon.png" id="icon" style="width: 40px; display: none;">
+  </div>
+
+  <button class="nav__burger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ================= LANDING PAGE ================= -->
+<div id="landingPage">
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu">
+    <ul>
+      <li><a href="#home">Home</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="leaderboard.html">Leaderboard</a></li>
+    </ul>
+    <div style="display: flex; flex-direction: column; gap: 0.75rem; width: 100%; margin-top: 1rem;">
+      <a href="#" class="btn w-full" style="text-align: center; border: 1px solid #22c55e; color: #22c55e; background: transparent;">Login</a>
+      <a href="leaderboard.html" class="btn btn--outline w-full" style="text-align: center;">View Leaderboard</a>
+      <a href="interview.html" class="btn btn--primary w-full" style="text-align: center;">Start Mock Interview</a>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero__glow"></div>
+    <div class="hero__content">
+      <div class="hero__badge">
+        <svg width="14" height="14" viewBox="0 0 22 22" fill="none">
+          <path d="M11 1L14 8H21L15.5 12.5L17.5 20L11 15.5L4.5 20L6.5 12.5L1 8H8L11 1Z" fill="#22c55e"/>
+        </svg>
+        AI-Powered Interview Coach
+      </div>
+      <h1 class="hero__title">
+        Nail Your Next<br/>
+        <span class="accent-text">Interview</span>
+      </h1>
+      <p class="hero__sub">
+        Practice with AI-generated questions, get instant feedback,<br class="br-hide"/>
+        and improve your answers — all in a distraction-free environment.
+      </p>
+      <div class="hero__actions">
+        <a href="interview.html" class="btn btn--primary btn--lg">
+          Start Mock Interview <span>→</span>
+        </a>
+       
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card" style="--d:0s">
+        <div class="card__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
+          </svg>
+        </div>
+        <h3>Real Questions</h3>
+        <p>Industry-specific questions from top companies</p>
+      </div>
+      <div class="card" style="--d:.1s">
+        <div class="card__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+            <path d="M8 14s1 1.5 4 1.5 4-1.5 4-1.5"/>
+          </svg>
+        </div>
+        <h3>AI Analysis</h3>
+        <p>Instant feedback powered by advanced AI</p>
+      </div>
+      <div class="card" style="--d:.2s">
+        <div class="card__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </div>
+        <h3>Score & Improve</h3>
+        <p>Track progress across sessions</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="features-header">
+        <div class="badge">FEATURES</div>
+        <h2 class="section__title">Everything You Need to<br/><span class="accent-text">Crack Your Interview</span></h2>
+        <p class="features-subtitle">Practice Smarter. Improve Faster. Get Hired.</p>
+      </div>
+
+      <div class="features-grid-new">
+        <div class="feat-card">
+          <div class="feat-card__num">01</div>
+          <div class="feat-card__inner">
+            <div class="feat-visual">
+              <div class="visual-resume">
+                <svg class="sparkle" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 2v20M2 12h20"></path><path d="M19.07 4.93l-14.14 14.14M4.93 4.93l14.14 14.14"></path></svg>
+                <svg width="40" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><circle cx="10" cy="10" r="2"></circle><line x1="7" y1="14" x2="13" y2="14"></line><line x1="7" y1="17" x2="17" y2="17"></line><line x1="7" y1="20" x2="17" y2="20"></line></svg>
+              </div>
+            </div>
+            <div class="feat-text">
+              <h3>AI-Powered Questions</h3>
+              <p>Get personalized interview questions based on your resume, role, and top companies.</p>
+              <span class="feat-tag">Smart & Relevant</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-card__num">02</div>
+          <div class="feat-card__inner">
+            <div class="feat-visual feat-visual--row">
+              <div class="visual-webcam">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="12" rx="2"></rect><circle cx="12" cy="10" r="3"></circle><path d="M10 20h4"></path><path d="M12 16v4"></path></svg>
+              </div>
+              <div class="visual-waves">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="feat-text">
+              <h3>Live Interview Mode</h3>
+              <p>Practice with real-time camera and voice interaction that feels like the actual interview.</p>
+              <span class="feat-tag">Realistic Experience</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-card__num">03</div>
+          <div class="feat-card__inner">
+            <div class="feat-visual feat-visual--row">
+              <div class="visual-score">
+                <div class="score-circle">83</div>
+              </div>
+              <div class="visual-bars">
+                <div class="bar bar-1"></div>
+                <div class="bar bar-2"></div>
+                <div class="bar bar-3"></div>
+              </div>
+            </div>
+            <div class="feat-text">
+              <h3>Intelligent Feedback</h3>
+              <p>Get instant scores, see your strengths, and discover areas you need to improve.</p>
+              <span class="feat-tag">Data-Driven Growth</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-card__num">04</div>
+          <div class="feat-card__inner">
+            <div class="feat-visual">
+              <div class="visual-suggestion">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 2v20M2 12h20M19.07 4.93l-14.14 14.14M4.93 4.93l14.14 14.14"></path></svg>
+                <p>Instead of saying "I worked hard", try <span class="highlight-green">"I optimized the process and reduced time by 20%."</span></p>
+              </div>
+            </div>
+            <div class="feat-text">
+              <h3>Better Answer Suggestions</h3>
+              <p>Learn from AI-generated ideal answers and improve the way you respond.</p>
+              <span class="feat-tag">Learn & Improve</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-banner">
+        <div class="banner-left">
+          <div class="banner-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+          </div>
+          <div class="banner-text">
+            <h3>Your Personal AI Coach for <span class="accent-text">Interview Success.</span></h3>
+            <p>Practice. Get Feedback. Improve. Repeat.</p>
+          </div>
+        </div>
+        <a href="#" class="btn btn--primary">Start Practicing Now →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section section--dark" id="how">
+    <div class="container">
+      <div class="how__header">
+        <div class="section__label">PROCESS</div>
+        <h2 class="section__title">How It <span class="accent-text">Works</span></h2>
+        <p class="how__subtitle">Practice smarter in 4 simple steps.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step__top">
+            <div class="step__num">01</div>
+            <div class="step__line"></div>
+          </div>
+          <div class="step__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><polyline points="9 15 12 12 15 15"></polyline></svg>
+          </div>
+          <h3>Upload Resume & Select Role</h3>
+          <p>Upload your resume and choose the job role you want to prepare for.</p>
+        </div>
+
+        <div class="step">
+          <div class="step__top">
+            <div class="step__num">02</div>
+            <div class="step__line"></div>
+          </div>
+          <div class="step__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path><circle cx="9" cy="11" r="1"></circle><circle cx="15" cy="11" r="1"></circle></svg>
+          </div>
+          <h3>Answer Questions</h3>
+          <p>Respond by text or voice in a clean, distraction-free interface.</p>
+        </div>
+
+        <div class="step">
+          <div class="step__top">
+            <div class="step__num">03</div>
+            <div class="step__line"></div>
+          </div>
+          <div class="step__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"></path><path d="M3 12h18"></path><path d="M12 3l3 6 6 3-6 3-3 6-3-6-6-3 6-3 3-6z"></path></svg>
+          </div>
+          <h3>Get AI Feedback</h3>
+          <p>Receive a detailed breakdown with tips to improve and perform better.</p>
+        </div>
+
+        <div class="step">
+          <div class="step__top">
+            <div class="step__num">04</div>
+          </div>
+          <div class="step__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 20 18 10"></polyline><polyline points="12 20 12 4"></polyline><polyline points="6 20 6 14"></polyline><polyline points="2 20 22 20"></polyline><polyline points="22 4 15 4 15 11"></polyline></svg>
+          </div>
+          <h3>Track & Level Up</h3>
+          <p>Practice again and watch your scores and confidence grow.</p>
+        </div>
+      </div>
+
+      <div class="how__cta">
+        <div class="cta__left">
+          <div class="cta__icon-wrap">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+          </div>
+          <div>
+            <h3 class="cta__title">Ready to <span class="accent-text">Ace Your Next Interview?</span></h3>
+            <p class="cta__desc">Start practicing now and see the difference.</p>
+          </div>
+        </div>
+        <div class="cta__right">
+          <a href="#" class="btn btn--primary">Start Mock Interview →</a>
+          <p class="cta__subtext">No Sign Up Required • Takes 2 Minutes</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="container">
+      <div class="about__header">
+        <div class="badge">ABOUT MOCKMATE AI</div>
+        <h2 class="section__title">Built for Serious <span class="accent-text">Candidates.</span></h2>
+        <p class="about__subtitle">
+          Interview preparation should be smart, personal, and effective — <span class="accent-text">not generic.</span><br>
+          MockMate AI helps you practice with purpose, get instant feedback, and walk into interviews with confidence.
+        </p>
+      </div>
+
+      <div class="about__grid">
+        <div class="about__card">
+          <div class="card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </div>
+          <div>
+            <h3 class="card__title">Resume-Based Prep</h3>
+            <p class="card__desc">Get questions and tips tailored to your profile and target role.</p>
+          </div>
+        </div>
+
+        <div class="about__card">
+          <div class="card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
+          </div>
+          <div>
+            <h3 class="card__title">AI-Powered Feedback</h3>
+            <p class="card__desc">Receive instant, actionable insights to improve your answers.</p>
+          </div>
+        </div>
+
+        <div class="about__card">
+          <div class="card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+          </div>
+          <div>
+            <h3 class="card__title">Real Simulation</h3>
+            <p class="card__desc">Practice with voice in a realistic interview environment.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mission__banner">
+        <div class="mission__icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+        </div>
+        <div class="mission__content">
+          <div class="badge">OUR MISSION</div>
+          <h3 class="mission__title">To make every candidate interview-ready <span class="accent-text">with confidence and clarity.</span></h3>
+          <p class="mission__desc">Smart preparation today. Better opportunities tomorrow.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="nav__logo">
+        <svg width="18" height="18" viewBox="0 0 22 22" fill="none">
+          <path d="M11 1L14 8H21L15.5 12.5L17.5 20L11 15.5L4.5 20L6.5 12.5L1 8H8L11 1Z" fill="#22c55e"/>
+        </svg>
+        <span>MockMate <span class="accent-text">AI</span></span>
+      </div>
+      <p class="footer__copy">© 2026 MockMate AI. All rights reserved.</p>
+    </div>
+  </footer>
+
+</div>
+<!-- ================= END LANDING PAGE ================= -->
+
+<!-- AUTH MODAL -->
+<div id="authModal" class="modal">
+  <div class="modal__overlay" id="modalOverlay"></div>
+  <div class="modal__content" id="modalContent">
+    <button class="modal__close" id="closeModal">&times;</button>
+
+    <div id="loginView">
+      <h2 style="margin-bottom: 0.5rem;">Welcome Back</h2>
+      <p style="margin-bottom: 1.5rem; color: #aaa; font-size: 0.9rem;">Log in to continue your interview prep.</p>
+      <form id="loginForm" class="auth-form">
+        <div class="input-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" required />
+        </div>
+        <div class="input-group" style="margin-top: 1rem;">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn btn--primary w-full" style="margin-top: 1.5rem;">Log In</button>
+      </form>
+      <p style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: #aaa;">
+        Don't have an account? <a href="#" id="showSignup" style="color: #22c55e; font-weight: 600; text-decoration: none;">Sign up here</a>
+      </p>
+    </div>
+
+    <div id="signupView" style="display: none;">
+      <h2 style="margin-bottom: 0.5rem;">Create an Account</h2>
+      <p style="margin-bottom: 1.5rem; color: #aaa; font-size: 0.9rem;">Start your journey to interview success.</p>
+      <form id="signupForm" class="auth-form">
+        <div class="input-group">
+          <label for="signupName">Full Name</label>
+          <input type="text" id="signupName" placeholder="Enter Your Name" required />
+        </div>
+        <div class="input-group" style="margin-top: 1rem;">
+          <label for="signupEmail">Email</label>
+          <input type="email" id="signupEmail" placeholder="you@example.com" required />
+        </div>
+        <div class="input-group" style="margin-top: 1rem;">
+          <label for="signupPassword">Password</label>
+          <input type="password" id="signupPassword" placeholder="Create a strong password" required />
+        </div>
+        <button type="submit" class="btn btn--primary w-full" style="margin-top: 1.5rem;">Sign Up</button>
+      </form>
+      <p style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: #aaa;">
+        Already have an account? <a href="#" id="showLogin" style="color: #22c55e; font-weight: 600; text-decoration: none;">Log in</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>

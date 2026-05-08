@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MockMate AI - Performance Report</title>
+    <link rel="stylesheet" href="interview.css">
+    <link rel="stylesheet" href="result.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link rel="icon" type="image/png" href="favStar.png"> 
+
+</head>
+<body>
+    <nav class="topbar">
+        <a href="index.html" class="brand">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 0L13.5 10.5L24 12L13.5 13.5L12 24L10.5 13.5L0 12L10.5 10.5L12 0Z" fill="#22c55e"/>
+            </svg>
+            <span>MOCKMATE <span class="brand-accent">AI</span></span>
+        </a>
+        <span class="topbar-chip">Step 3 of 3</span>
+    </nav>
+
+    <main class="result-shell">
+        <section class="result-hero">
+            <p class="eyebrow">Interview Complete</p>
+            <h1>Your performance report.</h1>
+            <span class="mode-chip" id="reportModeChip">Mixed Mode</span>
+            <p class="result-subtitle" id="resultSubtitle">Software Engineer • 8 questions • 12 minutes</p>
+        </section>
+
+        <section class="score-banner">
+            <div>
+                <p class="summary-label">Overall Score</p>
+                <div class="score-display"><span id="finalScore">0</span><small>/100</small></div>
+                <p class="score-caption" id="scoreCaption">Building your interview summary.</p>
+            </div>
+            <button class="primary-button download-button" id="downloadPdfBtn" type="button">Download PDF Report</button>
+        </section>
+
+        <section class="metric-grid" id="metricGrid"></section>
+
+        <section class="performance-sections" id="performanceSections"></section>
+
+        <section class="result-card eye-contact-card">
+            <div class="eye-contact-head">
+                <div>
+                    <h2>Eye Contact Analysis</h2>
+                    <p class="eye-contact-score" id="eyeContactScore">0%</p>
+                </div>
+                <div class="eye-contact-bar">
+                    <div class="eye-contact-bar-fill" id="eyeContactBarFill"></div>
+                </div>
+            </div>
+            <p class="summary-copy" id="eyeContactFeedback">Camera analysis was not available for this interview.</p>
+        </section>
+
+        <section class="result-card resume-analysis-card">
+            <div class="resume-analysis-head">
+                <h2>Resume Analysis</h2>
+                <span class="resume-status-badge" id="resumeStatusBadge">Needs Improvement</span>
+            </div>
+            <p class="summary-copy" id="resumeAnalysisSummary">Analyzing your resume alignment.</p>
+            <div class="resume-points">
+                <h3 id="resumeAnalysisListTitle">Improvement Points</h3>
+                <ul id="resumeAnalysisList"></ul>
+            </div>
+        </section>
+
+        <section class="result-card">
+            <h2>Summary</h2>
+            <p class="summary-copy" id="summaryCopy">Building your interview summary.</p>
+        </section>
+
+        <section class="feedback-columns">
+            <article class="result-card">
+                <h2>Strengths</h2>
+                <ul id="strengthList"></ul>
+            </article>
+
+            <article class="result-card">
+                <h2>Improvements</h2>
+                <ul id="improvementList"></ul>
+            </article>
+        </section>
+
+        <section class="result-card">
+            <div class="review-head">
+                <h2>Question Review</h2>
+                <p id="reviewMeta">0 answered</p>
+            </div>
+            <div class="review-list" id="reviewList"></div>
+        </section>
+
+        <section class="action-row">
+            <a href="interview.html" class="primary-button action-link">Start New Interview</a>
+        </section>
+        <div id="reportCardContainer">
+   <!-- All your report card text, scores, and charts are in here -->
+</div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAETyqOQAUdpUWjAkbtEJI_QFXf4nrGoos",
+            authDomain: "mockmate-ai-dc73f.firebaseapp.com",
+            projectId: "mockmate-ai-dc73f",
+            storageBucket: "mockmate-ai-dc73f.firebasestorage.app",
+            messagingSenderId: "493275586457",
+            appId: "1:493275586457:web:839dd3a7bdd2eb8cab7d08",
+            measurementId: "G-0YK5X7ZPF4"
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp);
+        const db = getFirestore(firebaseApp);
+
+        window.getMockMateFirebaseRecipient = async function getMockMateFirebaseRecipient() {
+            const user = auth.currentUser || await new Promise((resolve) => {
+                const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+                    unsubscribe();
+                    resolve(firebaseUser);
+                });
+            });
+
+            if (!user) throw new Error("No logged-in Firebase user found.");
+
+            const userSnap = await getDoc(doc(db, "users", user.uid));
+            const userData = userSnap.exists() ? userSnap.data() : {};
+            const email = userData.email || user.email;
+
+            if (!email) throw new Error("No email found for this Firebase user.");
+
+            return { uid: user.uid, email };
+        };
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const rawData = localStorage.getItem("mockmateResult");
+            if (!rawData) {
+                document.getElementById("scoreCaption").textContent = "No interview data found yet.";
+                return;
+            }
+
+            const session = JSON.parse(rawData);
+            const answers = (session.answers || []).map(normalizeAnswerFeedback);
+            const answeredCount = answers.length;
+            const mode = normalizeMode(session.mode);
+            const aggregateScores = {
+                clarity: average(answers.map((item) => item.feedback.subScores.clarity)),
+                technicalDepth: average(answers.map((item) => item.feedback.subScores.technicalDepth)),
+                useOfExamples: average(answers.map((item) => item.feedback.subScores.useOfExamples)),
+                confidence: average(answers.map((item) => item.feedback.subScores.confidence))
+            };
+            const totalScore = enforceAverageScore(aggregateScores);
+            const totalMinutes = Math.floor((session.timeSeconds || 0) / 60);
+            const totalSeconds = (session.timeSeconds || 0) % 60;
+            const eyeContactPercent = sanitizeScore(session.eyeContactPercent);
+
+            document.getElementById("finalScore").textContent = totalScore;
+            document.getElementById("reportModeChip").textContent = getModeLabel(mode);
+            document.getElementById("resultSubtitle").textContent =
+                `${sanitizeText(session.role)} • ${answeredCount}/${session.totalQuestions} questions • ${String(totalMinutes).padStart(2, "0")}:${String(totalSeconds).padStart(2, "0")}`;
+            document.getElementById("resultSubtitle").textContent =
+                `${sanitizeText(session.role)} | ${getModeLabel(mode)} | ${answeredCount}/${session.totalQuestions} questions | ${String(totalMinutes).padStart(2, "0")}:${String(totalSeconds).padStart(2, "0")}`;
+            document.getElementById("reviewMeta").textContent = `${answeredCount} responses reviewed`;
+            document.getElementById("scoreCaption").textContent = getScoreCaption(totalScore, mode);
+            document.getElementById("summaryCopy").textContent = buildOverallSummary(answers, totalScore, mode);
+            renderEyeContact(eyeContactPercent);
+            renderResumeAnalysis(session);
+
+            renderMetrics([
+                { label: mode === "mixed" ? "Overall Combined Score" : "Overall Score", value: totalScore },
+                { label: "Clarity", value: aggregateScores.clarity },
+                { label: mode === "hr" ? "Communication Clarity" : (mode === "mixed" ? "Depth / Communication" : "Technical Depth"), value: aggregateScores.technicalDepth },
+                { label: "Use of Examples", value: aggregateScores.useOfExamples },
+                { label: "Confidence", value: aggregateScores.confidence }
+            ]);
+            renderPerformanceSections(answers, mode);
+
+            const strengths = uniqueItems(answers.flatMap((item) => item.feedback.strengths))
+                .filter(isAllowedStrength)
+                .slice(0, 4);
+            const improvements = uniqueItems(answers.flatMap((item) => item.feedback.improvements)).slice(0, 4);
+
+            renderList(document.getElementById("strengthList"), strengths.length ? strengths : ["No notable strengths."]);
+            renderList(document.getElementById("improvementList"), improvements.length ? improvements : ["Keep practicing with specific project examples and technical detail."]);
+            renderReview(answers);
+
+            document.getElementById("downloadPdfBtn").addEventListener("click", () => window.print());
+            sendReportAutomatically(session, totalScore, answers);
+        });
+
+        async function sendReportAutomatically(session, totalScore, answers) {
+            const sentKey = `mockmateReportSent:${session.completedAt || session.startedAt || JSON.stringify(answers).length}`;
+
+            if (sessionStorage.getItem(sentKey)) return;
+            if (!window.html2pdf) {
+                setTimeout(() => sendReportAutomatically(session, totalScore, answers), 700);
+                return;
+            }
+
+            sessionStorage.setItem(sentKey, "pending");
+
+            try {
+                const recipient = await window.getMockMateFirebaseRecipient();
+                const pdfBase64 = await buildReportPdf();
+                const response = await fetch("http://localhost:3000/send-report", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        userId: recipient.uid,
+                        userEmail: recipient.email,
+                        pdfBase64,
+                        candidateData: {
+                            role: session.role || "Mock Interview",
+                            score: totalScore,
+                            qaSummary: answers.map((item) => ({
+                                question: item.question,
+                                answer: item.answer,
+                                strength: item.feedback.strengths?.[0] || "",
+                                improvement: item.feedback.improvements?.[0] || ""
+                            }))
+                        }
+                    })
+                });
+
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(data.details || data.error || `Server error ${response.status}`);
+
+                sessionStorage.setItem(sentKey, "sent");
+                console.log("Report emailed automatically to Firebase user email.");
+            } catch (error) {
+                sessionStorage.removeItem(sentKey);
+                console.error("Automatic report email failed:", error);
+            }
+        }
+
+        async function buildReportPdf() {
+            const report = document.querySelector(".result-shell");
+            const emailSection = document.querySelector(".email-section");
+            const actionRow = document.querySelector(".action-row");
+            const previousEmailDisplay = emailSection?.style.display || "";
+            const previousActionDisplay = actionRow?.style.display || "";
+
+            if (emailSection) emailSection.style.display = "none";
+            if (actionRow) actionRow.style.display = "none";
+
+            try {
+                return await html2pdf()
+                    .set({
+                        margin: 0.35,
+                        filename: "MockMate-Report.pdf",
+                        image: { type: "jpeg", quality: 0.96 },
+                        html2canvas: { scale: 2, useCORS: true },
+                        jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+                    })
+                    .from(report)
+                    .outputPdf("datauristring");
+            } finally {
+                if (emailSection) emailSection.style.display = previousEmailDisplay;
+                if (actionRow) actionRow.style.display = previousActionDisplay;
+            }
+        }
+
+        function renderResumeAnalysis(session) {
+            const analysis = buildResumeAnalysis(session);
+            const badge = document.getElementById("resumeStatusBadge");
+            const summary = document.getElementById("resumeAnalysisSummary");
+            const listTitle = document.getElementById("resumeAnalysisListTitle");
+            const list = document.getElementById("resumeAnalysisList");
+
+            badge.textContent = analysis.isStrong ? "✅ Strong Resume" : "⚠️ Needs Improvement";
+            badge.classList.toggle("is-strong", analysis.isStrong);
+            badge.classList.toggle("needs-improvement", !analysis.isStrong);
+            summary.textContent = analysis.summary;
+            listTitle.textContent = analysis.isStrong ? "Strength Points" : "Improvement Points";
+            renderList(list, analysis.points);
+        }
+
+        function buildResumeAnalysis(session) {
+            const resumeText = sanitizeText(session.resumeNotes || "");
+            const role = sanitizeText(session.role || "");
+            const sourceText = `${resumeText} ${role}`.toLowerCase();
+            const words = resumeText.split(/\s+/).filter(Boolean);
+            const hasReadableResume = words.length >= 35;
+            const hasMetrics = /(\d+%|\d+\+|\d+\s*(users|clients|requests|records|projects|ms|seconds|hours|revenue|sales))/i.test(resumeText);
+            const hasProjects = /\b(project|built|developed|implemented|designed|created|deployed|dashboard|system|application|platform)\b/i.test(resumeText);
+            const hasTechStack = /\b(react|javascript|typescript|node|express|python|java|sql|mongodb|postgres|aws|docker|git|api|html|css|excel|power bi|tableau)\b/i.test(resumeText);
+            const hasRoleAlignment = role && sourceText.includes(role.toLowerCase().split(" ")[0]);
+            const hasStructure = /\b(experience|education|skills|projects|certification|summary)\b/i.test(resumeText);
+
+            const score = [
+                hasReadableResume,
+                hasMetrics,
+                hasProjects,
+                hasTechStack,
+                hasRoleAlignment,
+                hasStructure
+            ].filter(Boolean).length;
+
+            if (score >= 4) {
+                const points = [
+                    hasProjects ? "Strong project descriptions with clear work examples." : "",
+                    hasTechStack ? "Relevant tech stack alignment for the selected role." : "",
+                    hasMetrics ? "Includes measurable impact that helps prove results." : "",
+                    hasStructure ? "Good clarity and structure across resume sections." : ""
+                ].filter(Boolean).slice(0, 3);
+
+                return {
+                    isStrong: true,
+                    summary: "Your resume is well aligned with the role and demonstrates strong project experience.",
+                    points: points.length ? points : [
+                        "Good clarity and structure.",
+                        "Relevant experience is visible.",
+                        "Resume content supports the target role."
+                    ]
+                };
+            }
+
+            const improvements = [
+                !hasReadableResume ? "Paste more resume text so the analysis can evaluate real experience, not just the file name." : "",
+                !hasMetrics ? "Add measurable results, such as percent improvement, users handled, response time reduced, or revenue impact." : "",
+                !hasProjects ? "Explain projects more clearly with the problem, your contribution, and the final outcome." : "",
+                !hasTechStack ? "Highlight specific technologies, tools, frameworks, and databases used." : "",
+                !hasRoleAlignment ? "Align the resume summary and project bullets more directly with the selected role." : "",
+                !hasStructure ? "Use clear sections like Skills, Projects, Experience, Education, and Certifications." : ""
+            ].filter(Boolean).slice(0, 4);
+
+            return {
+                isStrong: false,
+                summary: hasReadableResume
+                    ? "Your resume has useful information, but it needs stronger evidence, clearer project explanations, and better role alignment."
+                    : "Your resume cannot be fully evaluated yet because only limited resume text is available.",
+                points: improvements.length ? improvements : [
+                    "Add measurable results.",
+                    "Explain projects more clearly.",
+                    "Highlight specific technologies used."
+                ]
+            };
+        }
+
+        function renderPerformanceSections(answers, mode) {
+            const container = document.getElementById("performanceSections");
+            container.innerHTML = "";
+
+            if (mode !== "mixed" && mode !== "hr") {
+                return;
+            }
+
+            const sections = mode === "hr"
+                ? [
+                    {
+                        title: "Soft Skills",
+                        answers,
+                        depthLabel: "Communication Clarity"
+                    }
+                ]
+                : [
+                    {
+                        title: "Technical Performance",
+                        answers: answers.filter((item) => getAnswerQuestionType(item) === "technical"),
+                        depthLabel: "Technical Depth"
+                    },
+                    {
+                        title: "Soft Skills",
+                        answers: answers.filter((item) => getAnswerQuestionType(item) === "hr"),
+                        depthLabel: "Communication Clarity"
+                    }
+                ];
+
+            sections.forEach((section) => {
+                const scores = averageScoresFor(section.answers);
+                const score = enforceAverageScore(scores);
+                const article = document.createElement("article");
+                article.className = "result-card performance-card";
+                article.innerHTML = `
+                    <div class="performance-card-head">
+                        <h2>${escapeHtml(section.title)}</h2>
+                        <strong>${score}<small>/100</small></strong>
+                    </div>
+                    <div class="performance-mini-grid">
+                        <span>Clarity <b>${scores.clarity}</b></span>
+                        <span>${escapeHtml(section.depthLabel)} <b>${scores.technicalDepth}</b></span>
+                        <span>Examples <b>${scores.useOfExamples}</b></span>
+                        <span>Confidence <b>${scores.confidence}</b></span>
+                    </div>
+                `;
+                container.appendChild(article);
+            });
+        }
+
+        function averageScoresFor(answers) {
+            return {
+                clarity: average(answers.map((item) => item.feedback.subScores.clarity)),
+                technicalDepth: average(answers.map((item) => item.feedback.subScores.technicalDepth)),
+                useOfExamples: average(answers.map((item) => item.feedback.subScores.useOfExamples)),
+                confidence: average(answers.map((item) => item.feedback.subScores.confidence))
+            };
+        }
+
+        function renderMetrics(metrics) {
+            const metricGrid = document.getElementById("metricGrid");
+            metricGrid.innerHTML = "";
+
+            metrics.forEach((metric) => {
+                const article = document.createElement("article");
+                article.className = "metric-card";
+                article.innerHTML = `
+                    <p>${metric.label}</p>
+                    <strong>${metric.value}</strong>
+                `;
+                metricGrid.appendChild(article);
+            });
+        }
+
+        function renderList(target, items) {
+            target.innerHTML = "";
+            items.forEach((item) => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                target.appendChild(li);
+            });
+        }
+
+        function renderReview(answers) {
+            const reviewList = document.getElementById("reviewList");
+            reviewList.innerHTML = "";
+
+            const mainAnswers = answers.filter((item) => !item.question?.isFollowUp);
+            mainAnswers.forEach((item) => {
+                const review = item.feedback.questionReviews[0];
+                const scoreClass = getScoreClass(review.score);
+                const followUps = answers.filter((candidate) =>
+                    candidate.question?.isFollowUp &&
+                    candidate.question?.parentQuestionNumber === item.question?.parentQuestionNumber
+                );
+
+                const card = document.createElement("article");
+                card.className = "review-card";
+                card.innerHTML = `
+                    <div class="review-top">
+                        <div>
+                            <p class="summary-label">${escapeHtml(review.displayLabel || item.question?.displayLabel || `Q ${item.question?.parentQuestionNumber || ""}`)}</p>
+                            <h3>${escapeHtml(review.question || item.question.question)}</h3>
+                        </div>
+                        <div class="review-score ${scoreClass}">${review.noScore ? "No score" : `Score: ${review.score}/100`}</div>
+                    </div>
+                    ${buildAnswerReviewMarkup(review)}
+                    ${followUps.length ? `<div class="followup-group">${followUps.map((followUp) => buildFollowUpMarkup(followUp.feedback.questionReviews[0])).join("")}</div>` : ""}
+                `;
+                reviewList.appendChild(card);
+            });
+        }
+
+        function renderEyeContact(percent) {
+            const score = document.getElementById("eyeContactScore");
+            const barFill = document.getElementById("eyeContactBarFill");
+            const feedback = document.getElementById("eyeContactFeedback");
+
+            score.textContent = `${percent}%`;
+            barFill.style.width = `${percent}%`;
+            barFill.classList.remove("good", "medium", "low");
+
+            if (percent >= 80) {
+                barFill.classList.add("good");
+                feedback.textContent = "Excellent eye contact maintained throughout. You appeared confident and engaged.";
+                return;
+            }
+
+            if (percent >= 60) {
+                barFill.classList.add("medium");
+                feedback.textContent = "Good eye contact overall. You tend to look away while recalling answers — a common habit to work on.";
+                return;
+            }
+
+            barFill.classList.add("low");
+            feedback.textContent = "Eye contact needs improvement. Practice looking directly at your camera lens, not at your own face on screen.";
+        }
+
+        function normalizeAnswerFeedback(item) {
+            const feedback = item.feedback || {};
+            const subScores = {
+                clarity: sanitizeScore(feedback.subScores?.clarity ?? feedback.metrics?.clarity ?? 0),
+                technicalDepth: sanitizeScore(feedback.subScores?.technicalDepth ?? feedback.metrics?.technicalDepth ?? 0),
+                useOfExamples: sanitizeScore(feedback.subScores?.useOfExamples ?? feedback.metrics?.useOfExamples ?? 0),
+                confidence: sanitizeScore(feedback.subScores?.confidence ?? feedback.metrics?.confidence ?? 0)
+            };
+
+            const overallScore = enforceAverageScore(subScores);
+            const strengths = sanitizeTextArray(feedback.strengths || []).filter(isAllowedStrength);
+            const improvements = sanitizeTextArray(feedback.improvements || feedback.improve || []);
+            const questionReview = normalizeQuestionReview(item, feedback, overallScore);
+
+            return {
+                ...item,
+                answer: sanitizeText(item.answer || ""),
+                questionType: getAnswerQuestionType(item),
+                feedback: {
+                    overallScore,
+                    noScore: Boolean(feedback.noScore),
+                    summary: sanitizeText(feedback.summary || ""),
+                    subScores,
+                    strengths: strengths.length ? strengths : ["No notable strengths."],
+                    improvements,
+                    questionType: feedback.questionType || item.question?.questionType || "technical",
+                    questionReviews: [questionReview]
+                }
+            };
+        }
+
+        function normalizeQuestionReview(item, feedback, overallScore) {
+            const review = feedback.questionReviews?.[0] || {};
+            const strength = sanitizeText(review.strength || "");
+            return {
+                displayLabel: sanitizeText(item.question?.displayLabel || (item.question?.isFollowUp
+                    ? `Q ${item.question?.parentQuestionNumber}.1`
+                    : `Q ${item.question?.parentQuestionNumber || ""}`)),
+                question: sanitizeText(review.question || item.question?.question || ""),
+                answer: sanitizeText(review.answer || item.answer || ""),
+                score: overallScore,
+                noScore: Boolean(review.noScore || feedback.noScore),
+                strength: isAllowedStrength(strength) ? strength : "No notable strength.",
+                weakness: sanitizeText(review.weakness || feedback.weaknesses?.[0] || "No weakness recorded."),
+                improve: sanitizeText(review.improve || (feedback.improvements || feedback.improve || [])[0] || "Keep practicing with more detail.")
+            };
+        }
+
+        function buildAnswerReviewMarkup(review) {
+            return `
+                <div class="answer-block">
+                    <span class="answer-label">Your Answer</span>
+                    <p>${escapeHtml(review.answer || "No answer provided.")}</p>
+                </div>
+                <div class="review-body">
+                    <div>
+                        <span>Strength</span>
+                        <p>${escapeHtml(review.strength || "No notable strength.")}</p>
+                    </div>
+                    <div>
+                        <span>Weakness</span>
+                        <p>${escapeHtml(review.weakness || "No weakness recorded.")}</p>
+                    </div>
+                    <div>
+                        <span>Improve</span>
+                        <p>${escapeHtml(review.improve || "Keep practicing with more detail.")}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildFollowUpMarkup(review) {
+            const scoreClass = getScoreClass(review.score);
+            return `
+                <div class="followup-item">
+                    <div class="followup-head">
+                        <p class="followup-label">${escapeHtml(review.displayLabel || "Follow-up")}</p>
+                        <div class="review-score ${scoreClass}">${review.noScore ? "No score" : `Score: ${review.score}/100`}</div>
+                    </div>
+                    <h4>${escapeHtml(review.question)}</h4>
+                    ${buildAnswerReviewMarkup(review)}
+                </div>
+            `;
+        }
+
+        function average(values) {
+            if (!values.length) {
+                return 0;
+            }
+            return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+        }
+
+        function uniqueItems(items) {
+            return [...new Set(items.filter(Boolean))];
+        }
+
+        function normalizeMode(mode) {
+            return ["technical", "hr", "mixed"].includes(mode) ? mode : "technical";
+        }
+
+        function getModeLabel(mode) {
+            if (mode === "hr") {
+                return "HR Mode";
+            }
+            if (mode === "mixed") {
+                return "Mixed Mode";
+            }
+            return "Technical Mode";
+        }
+
+        function getAnswerQuestionType(item) {
+            return item.questionType || item.feedback?.questionType || item.question?.questionType || "technical";
+        }
+
+        function enforceAverageScore(scores) {
+            const values = [
+                sanitizeScore(scores.clarity),
+                sanitizeScore(scores.technicalDepth),
+                sanitizeScore(scores.useOfExamples),
+                sanitizeScore(scores.confidence)
+            ];
+            return average(values);
+        }
+
+        function sanitizeScore(value) {
+            const numeric = Number(value) || 0;
+            return Math.max(0, Math.min(100, Math.round(numeric)));
+        }
+
+        function sanitizeText(value) {
+            return String(value || "")
+                .replace(/[*_`#>-]/g, "")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        function sanitizeTextArray(values) {
+            return (values || []).map((value) => sanitizeText(value)).filter(Boolean);
+        }
+
+        function isAllowedStrength(text) {
+            const normalized = sanitizeText(text).toLowerCase();
+            if (!normalized) {
+                return false;
+            }
+            return !/(provided an answer|was honest|acknowledged|admitted)/i.test(normalized);
+        }
+
+        function buildOverallSummary(answers, totalScore, mode = "technical") {
+            const summaries = answers.map((item) => item.feedback.summary).filter(Boolean);
+            if (summaries.length) {
+                return summaries[0];
+            }
+            if (totalScore < 40) {
+                if (mode === "hr") {
+                    return "The candidate needs more HR interview preparation. Responses need clearer structure, stronger relevance, and better behavioral examples.";
+                }
+                return "The candidate is not ready for this role yet. The responses lack the technical depth, specificity, and examples expected in a real interview.";
+            }
+            if (mode === "hr") {
+                return "The interview shows communication potential, but stronger structure and more specific behavioral examples would improve the performance.";
+            }
+            return "The interview shows some potential, but stronger technical precision and examples are still needed.";
+        }
+
+        function getScoreCaption(score, mode = "technical") {
+            if (score >= 80) {
+                return mode === "hr"
+                    ? "Strong HR interview performance with clear, confident communication."
+                    : "Strong interview performance with solid technical clarity.";
+            }
+            if (score >= 60) {
+                return mode === "hr"
+                    ? "Promising communication, but stronger structure and examples would make it stronger."
+                    : "Promising answers, but more depth and examples would make them stronger.";
+            }
+            return mode === "hr"
+                ? "The answers need clearer structure, stronger confidence, and more relevant examples."
+                : "The answers need more specificity, stronger examples, and clearer technical detail.";
+        }
+
+        function getScoreClass(score) {
+            if (score >= 70) {
+                return "score-good";
+            }
+            if (score >= 40) {
+                return "score-medium";
+            }
+            return "score-low";
+        }
+
+        function escapeHtml(text) {
+            return sanitizeText(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+    </script>
+</body>
+</html>
